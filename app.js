@@ -1,398 +1,485 @@
-// Portfolio Website JavaScript
-
-class PortfolioApp {
-    constructor() {
+// Neural Network Animation Class
+class NeuralNetwork {
+    constructor(container) {
+        this.container = container;
+        this.svg = container.querySelector('#connections-svg');
+        this.nodes = [];
+        this.connections = [];
+        this.animationId = null;
+        this.lastActivation = 0;
+        this.activationInterval = 3000; // 3 seconds
+        
+        // Check for reduced motion preference
+        this.respectReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        
         this.init();
     }
-
+    
     init() {
-        this.setupNavigation();
-        this.setupScrollAnimations();
-        this.setupContactForm();
+        if (this.respectReducedMotion) {
+            this.createStaticNetwork();
+            return;
+        }
+        
+        this.createNodes();
+        this.createConnections();
+        this.animate();
+        this.setupPeriodicActivation();
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            this.handleResize();
+        });
+    }
+    
+    createNodes() {
+        const rect = this.container.getBoundingClientRect();
+        const nodeCount = window.innerWidth < 768 ? 15 : 25; // Fewer nodes on mobile
+        
+        for (let i = 0; i < nodeCount; i++) {
+            const size = this.getRandomSize();
+            const node = {
+                id: i,
+                x: Math.random() * rect.width,
+                y: Math.random() * rect.height,
+                vx: (Math.random() - 0.5) * 0.5, // Slower movement
+                vy: (Math.random() - 0.5) * 0.5,
+                size: size,
+                element: this.createNodeElement(size),
+                active: false
+            };
+            
+            this.nodes.push(node);
+            this.container.appendChild(node.element);
+        }
+    }
+    
+    getRandomSize() {
+        const rand = Math.random();
+        if (rand < 0.5) return 'small';
+        if (rand < 0.8) return 'medium';
+        return 'large';
+    }
+    
+    createNodeElement(size) {
+        const node = document.createElement('div');
+        node.className = `neuron ${size}`;
+        return node;
+    }
+    
+    createConnections() {
+        this.connections = [];
+        const maxDistance = window.innerWidth < 768 ? 120 : 150;
+        
+        for (let i = 0; i < this.nodes.length; i++) {
+            for (let j = i + 1; j < this.nodes.length; j++) {
+                const distance = this.getDistance(this.nodes[i], this.nodes[j]);
+                if (distance < maxDistance) {
+                    const connection = {
+                        from: this.nodes[i],
+                        to: this.nodes[j],
+                        element: this.createConnectionElement(),
+                        active: false
+                    };
+                    this.connections.push(connection);
+                }
+            }
+        }
+    }
+    
+    createConnectionElement() {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('class', 'connection-line');
+        this.svg.appendChild(line);
+        return line;
+    }
+    
+    getDistance(node1, node2) {
+        const dx = node1.x - node2.x;
+        const dy = node1.y - node2.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+    
+    updateNodes() {
+        const rect = this.container.getBoundingClientRect();
+        
+        this.nodes.forEach(node => {
+            // Update position
+            node.x += node.vx;
+            node.y += node.vy;
+            
+            // Bounce off edges
+            if (node.x <= 0 || node.x >= rect.width) {
+                node.vx *= -1;
+                node.x = Math.max(0, Math.min(rect.width, node.x));
+            }
+            if (node.y <= 0 || node.y >= rect.height) {
+                node.vy *= -1;
+                node.y = Math.max(0, Math.min(rect.height, node.y));
+            }
+            
+            // Update DOM element position
+            node.element.style.left = `${node.x}px`;
+            node.element.style.top = `${node.y}px`;
+        });
+    }
+    
+    updateConnections() {
+        this.connections.forEach(connection => {
+            const { from, to, element } = connection;
+            
+            element.setAttribute('x1', from.x);
+            element.setAttribute('y1', from.y);
+            element.setAttribute('x2', to.x);
+            element.setAttribute('y2', to.y);
+            
+            // Check if connection should be visible based on distance
+            const distance = this.getDistance(from, to);
+            const maxDistance = window.innerWidth < 768 ? 120 : 150;
+            
+            if (distance > maxDistance) {
+                element.style.opacity = '0';
+            } else {
+                const opacity = 1 - (distance / maxDistance);
+                element.style.opacity = Math.max(0.1, opacity * 0.3);
+            }
+        });
+    }
+    
+    activateRandomPathway() {
+        // Deactivate previous activations
+        this.nodes.forEach(node => {
+            node.element.classList.remove('active');
+            node.active = false;
+        });
+        this.connections.forEach(connection => {
+            connection.element.classList.remove('active');
+            connection.active = false;
+        });
+        
+        // Find a random starting node
+        const startNode = this.nodes[Math.floor(Math.random() * this.nodes.length)];
+        const pathway = this.findPathway(startNode, 3 + Math.floor(Math.random() * 3)); // 3-5 nodes
+        
+        // Activate pathway with delay
+        pathway.forEach((item, index) => {
+            setTimeout(() => {
+                if (item.type === 'node') {
+                    item.node.element.classList.add('active');
+                    item.node.active = true;
+                } else if (item.type === 'connection') {
+                    item.connection.element.classList.add('active');
+                    item.connection.active = true;
+                }
+            }, index * 200); // 200ms delay between activations
+        });
+    }
+    
+    findPathway(startNode, maxLength) {
+        const pathway = [{ type: 'node', node: startNode }];
+        let currentNode = startNode;
+        
+        for (let i = 1; i < maxLength; i++) {
+            const availableConnections = this.connections.filter(conn => 
+                (conn.from === currentNode || conn.to === currentNode) &&
+                !pathway.some(item => item.connection === conn)
+            );
+            
+            if (availableConnections.length === 0) break;
+            
+            const randomConnection = availableConnections[Math.floor(Math.random() * availableConnections.length)];
+            const nextNode = randomConnection.from === currentNode ? randomConnection.to : randomConnection.from;
+            
+            pathway.push({ type: 'connection', connection: randomConnection });
+            pathway.push({ type: 'node', node: nextNode });
+            
+            currentNode = nextNode;
+        }
+        
+        return pathway;
+    }
+    
+    setupPeriodicActivation() {
+        setInterval(() => {
+            if (!this.respectReducedMotion) {
+                this.activateRandomPathway();
+            }
+        }, this.activationInterval);
+        
+        // Initial activation after 1 second
+        setTimeout(() => {
+            if (!this.respectReducedMotion) {
+                this.activateRandomPathway();
+            }
+        }, 1000);
+    }
+    
+    animate() {
+        if (!this.respectReducedMotion) {
+            this.updateNodes();
+            this.updateConnections();
+        }
+        
+        this.animationId = requestAnimationFrame(() => this.animate());
+    }
+    
+    handleResize() {
+        // Clear existing connections
+        this.svg.innerHTML = '';
+        this.connections = [];
+        
+        // Recreate connections with new dimensions
+        this.createConnections();
+        
+        // Adjust node positions if they're outside new bounds
+        const rect = this.container.getBoundingClientRect();
+        this.nodes.forEach(node => {
+            node.x = Math.min(node.x, rect.width);
+            node.y = Math.min(node.y, rect.height);
+        });
+    }
+    
+    createStaticNetwork() {
+        // Create a simple static version for reduced motion users
+        const rect = this.container.getBoundingClientRect();
+        const nodeCount = 8;
+        
+        for (let i = 0; i < nodeCount; i++) {
+            const size = this.getRandomSize();
+            const node = document.createElement('div');
+            node.className = `neuron ${size}`;
+            node.style.left = `${(i % 4) * (rect.width / 3) + rect.width / 8}px`;
+            node.style.top = `${Math.floor(i / 4) * (rect.height / 2) + rect.height / 4}px`;
+            this.container.appendChild(node);
+        }
+    }
+    
+    destroy() {
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+        }
+        
+        // Clean up nodes
+        this.nodes.forEach(node => {
+            if (node.element && node.element.parentNode) {
+                node.element.parentNode.removeChild(node.element);
+            }
+        });
+        
+        // Clean up SVG
+        this.svg.innerHTML = '';
+    }
+}
+
+// Main Application Class
+class PortfolioApp {
+    constructor() {
+        this.neuralNetwork = null;
+        this.init();
+    }
+    
+    init() {
         this.setupMobileMenu();
         this.setupSmoothScrolling();
+        this.setupScrollAnimations();
+        this.setupActiveNavLinks();
+        this.setupContactForm();
+        this.initNeuralNetwork();
     }
-
-    // Navigation functionality
-    setupNavigation() {
-        const navbar = document.getElementById('navbar');
-        const navLinks = document.querySelectorAll('.nav-link');
+    
+    setupMobileMenu() {
+        const mobileMenu = document.getElementById('mobile-menu');
+        const navMenu = document.getElementById('nav-menu');
         
-        // Sticky navbar effect
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                navbar.style.backgroundColor = 'rgba(var(--color-surface-rgb, 255, 255, 253), 0.95)';
-                navbar.style.boxShadow = 'var(--shadow-sm)';
-            } else {
-                navbar.style.backgroundColor = 'rgba(var(--color-background-rgb, 252, 252, 249), 0.95)';
-                navbar.style.boxShadow = 'none';
-            }
+        mobileMenu.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            navMenu.classList.toggle('active');
         });
-
-        // Update active nav link based on scroll position
-        this.updateActiveNavLink();
-        window.addEventListener('scroll', () => this.updateActiveNavLink());
-    }
-
-    updateActiveNavLink() {
-        const sections = document.querySelectorAll('section[id]');
-        const navLinks = document.querySelectorAll('.portfolio-nav');
         
-        let currentSection = '';
-        
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop - 100;
-            if (window.scrollY >= sectionTop) {
-                currentSection = section.getAttribute('id');
-            }
-        });
-
-        navLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === `#${currentSection}`) {
-                link.classList.add('active');
-            }
+        // Close menu when clicking on nav links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                navMenu.classList.remove('active');
+            });
         });
     }
-
-    // Smooth scrolling for anchor links
+    
     setupSmoothScrolling() {
-        const links = document.querySelectorAll('a[href^="#"]');
-        
-        links.forEach(link => {
-            link.addEventListener('click', (e) => {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-                const target = document.querySelector(link.getAttribute('href'));
-                
+                const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    const offsetTop = target.offsetTop - 80;
+                    const navHeight = document.querySelector('.navbar').offsetHeight;
+                    const targetPosition = target.offsetTop - navHeight;
+                    
                     window.scrollTo({
-                        top: offsetTop,
+                        top: targetPosition,
                         behavior: 'smooth'
                     });
                 }
             });
         });
     }
-
-    // Mobile menu functionality
-    setupMobileMenu() {
-        const navToggle = document.getElementById('nav-toggle');
-        const navMenu = document.getElementById('nav-menu');
-        const navLinks = document.querySelectorAll('.nav-link');
-
-        navToggle.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-            navToggle.classList.toggle('active');
-        });
-
-        // Close menu when clicking on a link
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
-                navToggle.classList.remove('active');
-            });
-        });
-
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
-                navMenu.classList.remove('active');
-                navToggle.classList.remove('active');
-            }
-        });
-    }
-
-    // Scroll animations using Intersection Observer
+    
     setupScrollAnimations() {
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
         };
-
+        
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
+                    entry.target.classList.add('animate-fade-in');
                 }
             });
         }, observerOptions);
-
-        // Observe all sections
-        const sections = document.querySelectorAll('.section');
+        
+        // Observe all cards and major sections
+        document.querySelectorAll('.card, .hero-content, .section-title').forEach(el => {
+            observer.observe(el);
+        });
+    }
+    
+    setupActiveNavLinks() {
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const currentSection = entry.target.getAttribute('id');
+                    
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${currentSection}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, {
+            threshold: 0.3
+        });
+        
         sections.forEach(section => {
             observer.observe(section);
         });
-
-        // Observe cards and other elements
-        const animatedElements = document.querySelectorAll('.card, .fade-in');
-        animatedElements.forEach(element => {
-            observer.observe(element);
-        });
     }
-
-    // Contact form functionality
+    
     setupContactForm() {
         const contactForm = document.getElementById('contact-form');
         
-        if (contactForm) {
-            contactForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleContactFormSubmit(contactForm);
-            });
-        }
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(contactForm);
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                subject: formData.get('subject'),
+                message: formData.get('message')
+            };
+            
+            // Basic validation
+            if (!this.validateEmail(data.email)) {
+                this.showFormMessage('Please enter a valid email address.', 'error');
+                return;
+            }
+            
+            if (data.message.length < 10) {
+                this.showFormMessage('Please enter a message with at least 10 characters.', 'error');
+                return;
+            }
+            
+            // Simulate form submission
+            this.submitForm(data);
+        });
     }
-
-    handleContactFormSubmit(form) {
-        const formData = new FormData(form);
-        const data = {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            subject: formData.get('subject'),
-            message: formData.get('message')
-        };
-
-        // Validate form data
-        if (!this.validateContactForm(data)) {
-            return;
-        }
-
-        // Show loading state
-        const submitButton = form.querySelector('button[type="submit"]');
-        const originalText = submitButton.textContent;
-        submitButton.textContent = 'Sending...';
-        submitButton.disabled = true;
-
-        // Simulate form submission
-        setTimeout(() => {
-            this.showContactFormSuccess();
-            form.reset();
-            submitButton.textContent = originalText;
-            submitButton.disabled = false;
-        }, 1500);
-    }
-
-    validateContactForm(data) {
-        const errors = [];
-
-        if (!data.name.trim()) {
-            errors.push('Name is required');
-        }
-
-        if (!data.email.trim()) {
-            errors.push('Email is required');
-        } else if (!this.isValidEmail(data.email)) {
-            errors.push('Please enter a valid email address');
-        }
-
-        if (!data.subject.trim()) {
-            errors.push('Subject is required');
-        }
-
-        if (!data.message.trim()) {
-            errors.push('Message is required');
-        }
-
-        if (errors.length > 0) {
-            this.showContactFormErrors(errors);
-            return false;
-        }
-
-        return true;
-    }
-
-    isValidEmail(email) {
+    
+    validateEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     }
-
-    showContactFormErrors(errors) {
-        // Remove existing error messages
-        const existingErrors = document.querySelectorAll('.form-error');
-        existingErrors.forEach(error => error.remove());
-
-        // Create error message element
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'form-error';
-        errorDiv.style.cssText = `
-            background: rgba(var(--color-error-rgb), 0.1);
-            color: var(--color-error);
-            padding: var(--space-12);
-            border-radius: var(--radius-base);
-            margin-bottom: var(--space-16);
-            border: 1px solid rgba(var(--color-error-rgb), 0.3);
-        `;
-
-        const errorList = document.createElement('ul');
-        errorList.style.cssText = 'margin: 0; padding-left: var(--space-16);';
-
-        errors.forEach(error => {
-            const listItem = document.createElement('li');
-            listItem.textContent = error;
-            errorList.appendChild(listItem);
-        });
-
-        errorDiv.appendChild(errorList);
-
-        // Insert error message at the top of the form
-        const contactForm = document.getElementById('contact-form');
-        contactForm.insertBefore(errorDiv, contactForm.firstChild);
-
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            errorDiv.remove();
-        }, 5000);
-    }
-
-    showContactFormSuccess() {
-        // Remove existing messages
-        const existingMessages = document.querySelectorAll('.form-success, .form-error');
-        existingMessages.forEach(msg => msg.remove());
-
-        // Create success message
-        const successDiv = document.createElement('div');
-        successDiv.className = 'form-success';
-        successDiv.style.cssText = `
-            background: rgba(var(--color-success-rgb), 0.1);
-            color: var(--color-success);
-            padding: var(--space-12);
-            border-radius: var(--radius-base);
-            margin-bottom: var(--space-16);
-            border: 1px solid rgba(var(--color-success-rgb), 0.3);
-            text-align: center;
-        `;
-        successDiv.textContent = 'Thank you for your message! I\'ll get back to you soon.';
-
-        // Insert success message
-        const contactForm = document.getElementById('contact-form');
-        contactForm.insertBefore(successDiv, contactForm.firstChild);
-
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            successDiv.remove();
-        }, 5000);
-    }
-
-    // Utility functions
-    debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-
-}
-
-// Newsletter functionality
-function setupNewsletter() {
-    const newsletterForm = document.querySelector('.newsletter-form');
     
-    if (newsletterForm) {
-        const input = newsletterForm.querySelector('input[type="email"]');
-        const button = newsletterForm.querySelector('button');
+    submitForm(data) {
+        const submitButton = document.querySelector('#contact-form button[type="submit"]');
+        const originalText = submitButton.textContent;
         
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
+        // Show loading state
+        submitButton.textContent = 'Sending...';
+        submitButton.disabled = true;
+        
+        // Simulate API call
+        setTimeout(() => {
+            console.log('Form submission data:', data);
+            this.showFormMessage('Thank you for your message! I\'ll get back to you soon.', 'success');
             
-            if (input.value && input.validity.valid) {
-                const originalText = button.textContent;
-                button.textContent = 'Subscribed!';
-                button.disabled = true;
-                input.value = '';
-                
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.disabled = false;
-                }, 2000);
-            } else {
-                input.focus();
-                input.style.borderColor = 'var(--color-error)';
-                setTimeout(() => {
-                    input.style.borderColor = '';
-                }, 2000);
-            }
-        });
+            // Reset form
+            document.getElementById('contact-form').reset();
+            
+            // Reset button
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
+        }, 2000);
+    }
+    
+    showFormMessage(message, type) {
+        // Remove existing message
+        const existingMessage = document.querySelector('.form-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        // Create new message
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `form-message status status--${type}`;
+        messageDiv.textContent = message;
+        messageDiv.style.marginTop = '16px';
+        
+        // Insert after form
+        const form = document.getElementById('contact-form');
+        form.parentNode.insertBefore(messageDiv, form.nextSibling);
+        
+        // Remove message after 5 seconds
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 5000);
+    }
+    
+    initNeuralNetwork() {
+        const neuralContainer = document.getElementById('neural-network');
+        if (neuralContainer) {
+            this.neuralNetwork = new NeuralNetwork(neuralContainer);
+        }
     }
 }
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    const app = new PortfolioApp();
-    app.addTransitionStyles();
-    setupNewsletter();
-    
-    // Add some dynamic behavior for better UX
-    setTimeout(() => {
-        const heroContent = document.querySelector('.hero-content');
-        if (heroContent) {
-            heroContent.style.opacity = '1';
-            heroContent.style.transform = 'translateY(0)';
+    new PortfolioApp();
+});
+
+// Handle page visibility changes to optimize performance
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // Pause animations when page is not visible
+        const neuralNetwork = document.querySelector('.neural-network-bg');
+        if (neuralNetwork) {
+            neuralNetwork.style.animationPlayState = 'paused';
         }
-    }, 100);
-});
-
-// Handle resize events
-window.addEventListener('resize', () => {
-    // Close mobile menu on resize
-    const navMenu = document.getElementById('nav-menu');
-    const navToggle = document.getElementById('nav-toggle');
-    
-    if (window.innerWidth > 768) {
-        navMenu.classList.remove('active');
-        navToggle.classList.remove('active');
-    }
-});
-
-// Add keyboard navigation support
-document.addEventListener('keydown', (e) => {
-    // Escape key to close mobile menu
-    if (e.key === 'Escape') {
-        const navMenu = document.getElementById('nav-menu');
-        const navToggle = document.getElementById('nav-toggle');
-        navMenu.classList.remove('active');
-        navToggle.classList.remove('active');
-    }
-    
-    // Enter key to submit forms
-    if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'submit') {
-        const form = e.target.closest('form');
-        if (form) {
-            const submitButton = form.querySelector('button[type="submit"]');
-            if (submitButton) {
-                submitButton.click();
-            }
+    } else {
+        // Resume animations when page becomes visible
+        const neuralNetwork = document.querySelector('.neural-network-bg');
+        if (neuralNetwork) {
+            neuralNetwork.style.animationPlayState = 'running';
         }
     }
 });
 
-// Performance optimization: Lazy load heavy content
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            // Add any lazy loading functionality here
-            entry.target.classList.add('loaded');
-        }
-    });
-});
-
-// Add loading states and error handling for external links
-document.addEventListener('click', (e) => {
-    if (e.target.tagName === 'A' && e.target.target === '_blank') {
-        // Add loading indicator for external links
-        const originalText = e.target.textContent;
-        e.target.textContent = 'Opening...';
-        setTimeout(() => {
-            e.target.textContent = originalText;
-        }, 1000);
-    }
-});
-
-// Export for potential module usage
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = PortfolioApp;
-}
+// Export for potential future use
+window.PortfolioApp = PortfolioApp;
+window.NeuralNetwork = NeuralNetwork;
