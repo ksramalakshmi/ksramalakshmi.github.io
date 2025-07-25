@@ -761,16 +761,9 @@ html {
   margin: 0 auto;
   padding: 0 var(--space-16);
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   height: 70px;
-}
-
-.nav-logo h3 {
-  color: var(--color-cream-50);
-  margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
 }
 
 .nav-menu {
@@ -779,6 +772,12 @@ html {
   margin: 0;
   padding: 0;
   gap: var(--space-32);
+  justify-content: center;
+  align-items: center;
+}
+
+.nav-logo h3 {
+  display: none;
 }
 
 .nav-link {
@@ -1910,4 +1909,15 @@ html {
   position: absolute;
   left: 0;
   top: 0;
+}
+
+@media (max-width: 768px) {
+  .contact-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-32);
+  }
+  .contact-form {
+    margin-top: var(--space-24);
+  }
 }
