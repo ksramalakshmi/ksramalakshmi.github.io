@@ -1826,3 +1826,87 @@ html {
   margin: 0;
   font-size: var(--font-size-lg);
 }
+
+.resume-content {
+  max-width: 500px;
+  margin: 0 auto;
+  background: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 40px 32px 32px 32px;
+  border: 1px solid var(--color-card-border);
+  text-align: center;
+  transition: box-shadow 0.2s;
+}
+
+.resume-content:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.resume-content p {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  margin-bottom: 32px;
+}
+
+.resume-content .btn.btn--primary.btn--lg {
+  font-size: var(--font-size-xl);
+  padding: 16px 40px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--color-primary) 60%, var(--color-primary-hover));
+  box-shadow: 0 2px 8px rgba(50,184,198,0.10);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+
+.resume-content .btn.btn--primary.btn--lg:hover {
+  background: linear-gradient(90deg, var(--color-primary-hover), var(--color-primary));
+  box-shadow: 0 4px 16px rgba(50,184,198,0.16);
+  transform: translateY(-2px) scale(1.03);
+}
+
+@media (max-width: 600px) {
+  .resume-content {
+    padding: 24px 8px 24px 8px;
+  }
+  .resume-content .btn.btn--primary.btn--lg {
+    width: 100%;
+    font-size: var(--font-size-lg);
+    padding: 14px 0;
+  }
+}
+
+.resume-headline {
+  font-size: var(--font-size-2xl);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: 18px;
+}
+
+.resume-summary {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin-bottom: 18px;
+  line-height: var(--line-height-normal);
+}
+
+.resume-highlights {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 32px 0;
+  text-align: left;
+}
+.resume-highlights li {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 12px;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+.resume-highlights li::before {
+  content: '\2713';
+  color: var(--color-primary);
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
