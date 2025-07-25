@@ -1862,6 +1862,7 @@ html {
   background: linear-gradient(90deg, var(--color-primary-hover), var(--color-primary));
   box-shadow: 0 4px 16px rgba(50,184,198,0.16);
   transform: translateY(-2px) scale(1.03);
+  color: var(--color-btn-primary-text) !important;
 }
 
 @media (max-width: 600px) {
