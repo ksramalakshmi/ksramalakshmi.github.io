@@ -36,6 +36,9 @@
                 <li class="nav-item">
                     <a href="#contact" class="nav-link">Contact</a>
                 </li>
+                <li class="nav-item">
+                    <a href="https://medium.com/@ksramalakshmi" rel="noopener" class="nav-link" target="_blank">Blog</a>
+                </li>
             </ul>
             <div class="nav-toggle" id="mobile-menu">
                 <span class="bar"></span>
@@ -52,11 +55,12 @@
         </div>
         <div class="hero-content">
             <h1 class="hero-title">K S Ramalakshmi</h1>
-            <p class="hero-subtitle">Software Engineer - Machine Learning at RadiusAI</p>
-            <p class="hero-tagline">So, what can we create together with the power of AI?</p>
+            <p class="hero-subtitle">Applied Scientist at RadiusAI</p>
+            <p class="hero-tagline">So, what can we create together with the power of AI? Scroll down!</p>
             <div class="hero-cta-group">
-                <a href="#about" class="btn btn--outline btn--sm hero-cta">Know more</a>
-                <a href="https://github.com/ksramalakshmi" class="btn btn--outline btn--sm hero-cta" target="_blank" rel="noopener">View Projects</a>
+                <!-- <a href="#about" class="btn btn--outline btn--sm hero-cta">Know more</a> -->
+                <a href="https://github.com/ksramalakshmi" class="btn btn--outline btn--sm hero-cta" target="_blank" rel="noopener">Projects</a>
+                <a href="https://medium.com/@ksramalakshmi" class="btn btn--outline btn--sm hero-cta" target="_blank" rel="noopener">Blog</a>
             </div>
         </div>
     </section>
@@ -70,7 +74,7 @@
                     <img src="./author_image.jpeg" alt="K S Ramalakshmi" class="profile-photo">
                 </div>
                 <div class="about-text">
-                    <p class="about-intro">Hey there! I'm K S Ramalakshmi, a Machine Learning Engineer at RadiusAI, Bengaluru.</p>
+                    <p class="about-intro">Hey there! I'm K S Ramalakshmi, an Applied Scientist at RadiusAI, Bengaluru.</p>
                     
                     <p class="about-description">With hands-on experience in machine learning and computer vision, I'm passionate about using AI for good. I love exploring new technologies, tackling real-world challenges, and sharing what I learn with others.</p>
                     
@@ -115,16 +119,30 @@
             <div class="experience-timeline">
                 <div class="experience-item card">
                     <div class="card__body">
+                        <h3>Applied Scientist</h3>
+                        <p class="experience-company">RadiusAI, Bengaluru</p>
+                        <p class="experience-duration">Sep 2025 - Present</p>
+                        <ul class="experience-responsibilities">
+                            <li>Modified and improved custom CVAT platform for data annotation workflows using Voxel51.</li>
+                            <li>Researched on Knowledge Distillation methods for improving YOLOv8 using DINOv2 and similar architectures.</li>
+                            <li>Bug fixes on production-ready NVIDIA Triton Servers for end-to-end model pipeline deployments</li>
+                            <li>Leveraged AI agents using DSPy for internal developer tools</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="experience-item card">
+                    <div class="card__body">
                         <h3>Software Engineer - Machine Learning</h3>
                         <p class="experience-company">RadiusAI, Bengaluru</p>
-                        <p class="experience-duration">Sep 2024 - Present</p>
+                        <p class="experience-duration">Sep 2024 - Sept 2025</p>
                         <ul class="experience-responsibilities">
-                            <li>Developed custom YOLO, SigLIP, and ViT models tailored for major retail clients</li>
-                            <li>Curated and vetted client datasets to ensure high-quality training data</li>
-                            <li>Performed end-to-end model evaluation and optimized performance using Optuna-based hyperparameter tuning</li>
-                            <li>Collaborated on MLOps and model deployment, ensuring seamless integration of models into the ShopAssist production pipeline</li>
-                            <li>Developed and integrated on-demand AI features to enhance the ShopAssist platform</li>
-                            <li>Implemented metrology techniques to improve ShopAssist's performance</li>
+                            <li>Conducted class and domain incremental training of Vision Transformers for ShopAssist, an AI-powered checkout system
+deployed across multiple clients in North America.</li>
+                            <li>Implemented SigLip and SAM techniques in model training pipeline to enhance performance.</li>
+                            <li>Applied advanced data curation techniques like deduplication, to streamline vision-related tasks.</li>
+                            <li>Applied advanced Metrology (depth perception), Barcode and Aruco related classification techniques</li>
+                            <li>Implemented progressive training using adaptive learning rate schedulers to improve convergence and accuracy</li>
                         </ul>
                     </div>
                 </div>
@@ -222,6 +240,7 @@
                             <span class="skill-tag">MLFlow</span>
                             <span class="skill-tag">Cloudfare R2</span>
                             <span class="skill-tag">Optuna</span>
+                            <span class="skill-tag">NVIDIA Triton</span>
                         </div>
                     </div>
                 </div>
@@ -234,7 +253,7 @@
                             <span class="skill-tag">Hugging Face</span>
                             <span class="skill-tag">OpenAI</span>
                             <span class="skill-tag">Prompt Engineering</span>
-                            <span class="skill-tag">Pydantic AI</span>
+                            <span class="skill-tag">DSPy</span>
                             <span class="skill-tag">LlamaIndex</span>
                             <span class="skill-tag">Claude</span>
                         </div>
@@ -562,7 +581,6 @@ Vision background.
                 <h2 class="section-title">Contact Me</h2>
                 <div class="contact-content">
                     <div class="contact-info">
-                        <h3>Get In Touch</h3>
                         <p>Feel free to reach out if you'd like to collaborate on a project or just want to say hello!</p>
                         <div class="contact-details">
                             <div class="contact-item">
@@ -579,25 +597,6 @@ Vision background.
                             <a href="https://github.com/ksramalakshmi" target="_blank" class="btn btn--outline btn--sm">GitHub</a>
                         </div>
                     </div>
-                    <form class="contact-form" id="contact-form">
-                        <div class="form-group">
-                            <label for="name" class="form-label">Name</label>
-                            <input type="text" id="name" name="name" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" id="email" name="email" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="subject" class="form-label">Subject</label>
-                            <input type="text" id="subject" name="subject" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="message" class="form-label">Message</label>
-                            <textarea id="message" name="message" rows="5" class="form-control" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn--primary btn--full-width">Send Message</button>
-                    </form>
                 </div>
             </div>
         </section>
