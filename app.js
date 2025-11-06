@@ -10,7 +10,8 @@ class NeuralNetwork {
         this.activationInterval = 3000; // 3 seconds
         
         // Check for reduced motion preference
-        this.respectReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        // this.respectReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        this.respectReducedMotion = false
         
         this.init();
     }
@@ -283,7 +284,7 @@ class PortfolioApp {
         this.setupSmoothScrolling();
         this.setupScrollAnimations();
         this.setupActiveNavLinks();
-        this.setupContactForm();
+        // this.setupContactForm();
         this.initNeuralNetwork();
     }
     
